@@ -1,6 +1,7 @@
 # Implementation of Pong in pygame
 import pygame as pyg
 import random
+import math
 
 
 class Pong:
@@ -14,14 +15,15 @@ class Pong:
         pyg.display.update()
         pyg.display.set_caption("Pong")
         self.clock = pyg.time.Clock()
+        self.gameover = False
 
         # _1 is for the player, _2 is for the computer
         self.score_1 = self.score_2 = 0
-        self.paddle_1 = self.paddle_2 = screen_y // 2 - (2 * self.size_y)
+        self.paddle_1 = self.paddle_2 = screen_y / 2 - (2 * self.size_y)
         self.delta_1 = self.delta_2 = 0
         self.paddle_length = 5
-        self.ball_x, self.ball_y = screen_x // 2, screen_y // 2
-        self.gameover = False
+        self.ball_x, self.ball_y = screen_x / 2, screen_y / 2
+        self.ball_delta_x, self.ball_delta_y = -1, 0
 
     # TODO
     def display(self):
@@ -36,14 +38,6 @@ class Pong:
         for i in range(0, self.screen_x, self.size_x):  # Border
             pyg.draw.rect(self.screen, self.white, [i, 0, self.size_x, self.size_y])
             pyg.draw.rect(self.screen, self.white, [i, self.screen_y - self.size_y, self.size_x, self.size_y])
-
-    # TODO: computer move
-    def move_paddles(self):
-        # Bounds checkings
-        if (self.paddle_1 + self.delta_1 > self.size_y
-            and self.paddle_1 + (self.paddle_length * self.size_y) + self.delta_1 < self.screen_y - self.size_y):
-            self.paddle_1 += self.delta_1
-
 
     def process_keyboard_input(self):
         for event in pyg.event.get():
@@ -60,10 +54,46 @@ class Pong:
                     self.delta_1 = -1
                 elif event.key == pyg.K_DOWN or event.key == pyg.K_s:
                     self.delta_1 = 1
+                    
+    # TODO: computer move
+    def move_paddles(self):
+        # Bounds checkings
+        if (self.paddle_1 + self.delta_1 > self.size_y
+            and self.paddle_1 + (self.paddle_length * self.size_y) + self.delta_1 < self.screen_y - self.size_y):
+            self.paddle_1 += self.delta_1
+    
+    def move_ball(self):
+        # Check paddle intersect
+        self.ball_x += self.ball_delta_x
+        self.ball_y += self.ball_delta_y
+
+        # Player side
+        if self.ball_x <= self.size_x and self.ball_x >= 0:
+            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y
+            normalized_intersect = relative_intersect / (self.paddle_length * self.size_y / 2)
+            if normalized_intersect > -1.1 and normalized_intersect < 1.1:  # Paddle miss
+                self.ball_delta_x, self.ball_delta_y = math.cos(normalized_intersect), -math.sin(normalized_intersect)
+        elif self.ball_x < 0:
+            print("Computer scores!")
+
+        # Computer side
+        if self.ball_x >= self.screen_x -  2 * self.size_x and self.ball_x <= self.screen_x:
+            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y
+            normalized_intersect = relative_intersect / (self.paddle_length * self.size_y / 2)
+            if normalized_intersect > -1.1 and normalized_intersect < 1.1:  # Paddle miss
+                self.ball_delta_x, self.ball_delta_y = -math.cos(normalized_intersect), -math.sin(normalized_intersect)
+        elif self.ball_x > self.screen_x:
+            print("Player scores!")
+
+        # Borders
+        if self.ball_y <= self.size_y or self.ball_y >= self.screen_y - 2 * self.size_y:
+            self.ball_delta_y = -self.ball_delta_y
+
 
     def step(self, tick=15):
         self.process_keyboard_input()
         self.move_paddles()
+        self.move_ball()
 
         self.display()  # Draw
 
