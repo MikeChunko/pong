@@ -54,14 +54,14 @@ class Pong:
                     self.delta_1 = -1
                 elif event.key == pyg.K_DOWN or event.key == pyg.K_s:
                     self.delta_1 = 1
-                    
+
     # TODO: computer move
     def move_paddles(self):
         # Bounds checkings
         if (self.paddle_1 + self.delta_1 > self.size_y
             and self.paddle_1 + (self.paddle_length * self.size_y) + self.delta_1 < self.screen_y - self.size_y):
             self.paddle_1 += self.delta_1
-    
+
     def move_ball(self):
         # Check paddle intersect
         self.ball_x += self.ball_delta_x
@@ -69,7 +69,7 @@ class Pong:
 
         # Player side
         if self.ball_x <= self.size_x and self.ball_x >= 0:
-            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y
+            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
             normalized_intersect = relative_intersect / (self.paddle_length * self.size_y / 2)
             if normalized_intersect > -1.1 and normalized_intersect < 1.1:  # Paddle miss
                 self.ball_delta_x, self.ball_delta_y = math.cos(normalized_intersect), -math.sin(normalized_intersect)
@@ -78,7 +78,7 @@ class Pong:
 
         # Computer side
         if self.ball_x >= self.screen_x -  2 * self.size_x and self.ball_x <= self.screen_x:
-            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y
+            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
             normalized_intersect = relative_intersect / (self.paddle_length * self.size_y / 2)
             if normalized_intersect > -1.1 and normalized_intersect < 1.1:  # Paddle miss
                 self.ball_delta_x, self.ball_delta_y = -math.cos(normalized_intersect), -math.sin(normalized_intersect)
