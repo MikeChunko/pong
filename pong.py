@@ -18,6 +18,7 @@ class Pong:
         # _1 is for the player, _2 is for the computer
         self.score_1 = self.score_2 = 0
         self.paddle_1 = self.paddle_2 = screen_y // 2 - (2 * self.size_y)
+        self.delta_1 = self.delta_2 = 0
         self.paddle_length = 5
         self.ball_x, self.ball_y = screen_x // 2, screen_y // 2
         self.gameover = False
@@ -28,34 +29,41 @@ class Pong:
 
         pyg.draw.rect(self.screen, self.white, [self.ball_x, self.ball_y, self.size_x, self.size_y])
 
-        for i in range (0, self.paddle_length * self.size_x, self.size_x):  # Paddles
-            pyg.draw.rect(self.screen, self.white, [0, self.paddle_1 + i, self.size_x, self.size_y])
+        for i in range (0, self.paddle_length * self.size_y, self.size_y):  # Paddles
+            pyg.draw.rect(self.screen, self.white, [0, self.paddle_1 + i, self.size_y, self.size_y])
             pyg.draw.rect(self.screen, self.white, [self.screen_x - self.size_x, self.paddle_2 + i, self.size_x, self.size_y])
 
         for i in range(0, self.screen_x, self.size_x):  # Border
             pyg.draw.rect(self.screen, self.white, [i, 0, self.size_x, self.size_y])
             pyg.draw.rect(self.screen, self.white, [i, self.screen_y - self.size_y, self.size_x, self.size_y])
 
+    # TODO: computer move
+    def move_paddles(self):
+        # Bounds checkings
+        if (self.paddle_1 + self.delta_1 > self.size_y
+            and self.paddle_1 + (self.paddle_length * self.size_y) + self.delta_1 < self.screen_y - self.size_y):
+            self.paddle_1 += self.delta_1
+
+
     def process_keyboard_input(self):
         for event in pyg.event.get():
             if event.type == pyg.QUIT:
                 pyg.quit()
                 quit()
-            if event.type == pyg.KEYDOWN:  # Movement keys
+            elif event.type == pyg.KEYUP:
+                if (event.key == pyg.K_UP or event.key == pyg.K_w) and self.delta_1 == -1:
+                    self.delta_1 = 0
+                elif (event.key == pyg.K_DOWN or event.key == pyg.K_s) and self.delta_1 == 1:
+                    self.delta_1 = 0
+            elif event.type == pyg.KEYDOWN:  # Movement keys
                 if event.key == pyg.K_UP or event.key == pyg.K_w:
-                    self.get_input(0)
+                    self.delta_1 = -1
                 elif event.key == pyg.K_DOWN or event.key == pyg.K_s:
-                    self.get_input(1)
-
-    # TODO
-    def get_input(self, input):
-        if input == 0:
-            pass
-        elif input == 1:
-            pass
+                    self.delta_1 = 1
 
     def step(self, tick=15):
         self.process_keyboard_input()
+        self.move_paddles()
 
         self.display()  # Draw
 
@@ -64,7 +72,7 @@ class Pong:
 
 
 if __name__ == "__main__":
-    tick = 15
+    tick = 100
     while True:
         game = Pong()
         while not game.gameover:
