@@ -15,7 +15,6 @@ class Pong:
         pyg.display.update()
         pyg.display.set_caption("Pong")
         self.clock = pyg.time.Clock()
-        self.gameover = False
 
         # _1 is for the player, _2 is for the computer
         self.score_1 = self.score_2 = 0
@@ -26,9 +25,10 @@ class Pong:
         self.ball_delta_x, self.ball_delta_y = -1, 0
 
     def display(self):
-        self.screen.fill((0, 0, 0))
+        """ Display the game. """
+        self.screen.fill((0, 0, 0))  # Blank the screen
 
-        pyg.draw.rect(self.screen, self.white, [self.ball_x, self.ball_y, self.size_x, self.size_y])
+        pyg.draw.rect(self.screen, self.white, [self.ball_x, self.ball_y, self.size_x, self.size_y])  # Ball
 
         for i in range (0, self.paddle_length * self.size_y, self.size_y):  # Paddles
             pyg.draw.rect(self.screen, self.white, [0, self.paddle_1 + i, self.size_y, self.size_y])
@@ -38,29 +38,32 @@ class Pong:
             pyg.draw.rect(self.screen, self.white, [i, 0, self.size_x, self.size_y])
             pyg.draw.rect(self.screen, self.white, [i, self.screen_y - self.size_y, self.size_x, self.size_y])
 
-    def process_keyboard_input(self):
-        for event in pyg.event.get():
+    def process_input(self):
+        """ Fetch and handle user input. """
+        for event in pyg.event.get():  # Quit
             if event.type == pyg.QUIT:
                 pyg.quit()
                 quit()
-            elif event.type == pyg.KEYUP:
+            elif event.type == pyg.KEYUP:  # Move release
                 if (event.key == pyg.K_UP or event.key == pyg.K_w) and self.delta_1 == -1:
                     self.delta_1 = 0
                 elif (event.key == pyg.K_DOWN or event.key == pyg.K_s) and self.delta_1 == 1:
                     self.delta_1 = 0
-            elif event.type == pyg.KEYDOWN:  # Movement keys
+            elif event.type == pyg.KEYDOWN:  # Move begin
                 if event.key == pyg.K_UP or event.key == pyg.K_w:
                     self.delta_1 = -1
                 elif event.key == pyg.K_DOWN or event.key == pyg.K_s:
                     self.delta_1 = 1
 
     def move_paddles(self):
+        """ Move both paddles.
+            Do bounds checking to ensure they do not move outside the screen. """
         # Player
         new_paddle_1 = self.paddle_1 + self.delta_1
         if (new_paddle_1 > self.size_y
             and new_paddle_1 + (self.paddle_length * self.size_y) < self.screen_y - self.size_y):
             self.paddle_1 += self.delta_1
-        
+
         # Computer
         new_paddle_2 = self.paddle_2 + self.delta_2
         if (new_paddle_2 > self.size_y
@@ -69,6 +72,7 @@ class Pong:
 
     def move_ball(self):
         def get_intersect_angle():
+            """ Calculate the normalized angle to bounce the ball off of a paddle. """
             relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
             return relative_intersect / (self.paddle_length * self.size_y / 2)  # Normalize
 
@@ -96,14 +100,12 @@ class Pong:
         if self.ball_y <= self.size_y or self.ball_y >= self.screen_y - 2 * self.size_y:
             self.ball_delta_y = -self.ball_delta_y
 
-
-    def step(self, tick=15):
-        self.process_keyboard_input()
+    def step(self, tick=100):
+        """ Process one step of the game. """
+        self.process_input()
         self.move_paddles()
         self.move_ball()
-
-        self.display()  # Draw
-
+        self.display()
         pyg.display.update()
         self.clock.tick(tick)
 
@@ -112,21 +114,6 @@ if __name__ == "__main__":
     tick = 100
     while True:
         game = Pong()
-        while not game.gameover:
+        while True:
             game.step(tick=tick)
 
-        # Game over state
-        # TODO - gameover text
-        sentinel = True
-        while sentinel:
-            for event in pyg.event.get():
-                if event.type == pyg.QUIT:
-                    pyg.quit()
-                    quit()
-                if event.type == pyg.KEYDOWN and event.key == pyg.K_r:
-                    sentinel = False
-
-            game.display()
-
-            pyg.display.update()
-            game.clock.tick(tick)
