@@ -25,7 +25,6 @@ class Pong:
         self.ball_x, self.ball_y = screen_x / 2, screen_y / 2
         self.ball_delta_x, self.ball_delta_y = -1, 0
 
-    # TODO
     def display(self):
         self.screen.fill((0, 0, 0))
 
@@ -55,33 +54,41 @@ class Pong:
                 elif event.key == pyg.K_DOWN or event.key == pyg.K_s:
                     self.delta_1 = 1
 
-    # TODO: computer move
     def move_paddles(self):
-        # Bounds checkings
-        if (self.paddle_1 + self.delta_1 > self.size_y
-            and self.paddle_1 + (self.paddle_length * self.size_y) + self.delta_1 < self.screen_y - self.size_y):
+        # Player
+        new_paddle_1 = self.paddle_1 + self.delta_1
+        if (new_paddle_1 > self.size_y
+            and new_paddle_1 + (self.paddle_length * self.size_y) < self.screen_y - self.size_y):
             self.paddle_1 += self.delta_1
+        
+        # Computer
+        new_paddle_2 = self.paddle_2 + self.delta_2
+        if (new_paddle_2 > self.size_y
+            and new_paddle_2 + (self.paddle_length * self.size_y) < self.screen_y - self.size_y):
+            self.paddle_2 += self.delta_2
 
     def move_ball(self):
+        def get_intersect_angle():
+            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
+            return relative_intersect / (self.paddle_length * self.size_y / 2)  # Normalize
+
         # Check paddle intersect
         self.ball_x += self.ball_delta_x
         self.ball_y += self.ball_delta_y
 
         # Player side
         if self.ball_x <= self.size_x and self.ball_x >= 0:
-            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
-            normalized_intersect = relative_intersect / (self.paddle_length * self.size_y / 2)
-            if normalized_intersect > -1.1 and normalized_intersect < 1.1:  # Paddle miss
-                self.ball_delta_x, self.ball_delta_y = math.cos(normalized_intersect), -math.sin(normalized_intersect)
+            intersect_angle = get_intersect_angle()
+            if intersect_angle > -1.1 and intersect_angle < 1.1:  # Paddle miss
+                self.ball_delta_x, self.ball_delta_y = math.cos(intersect_angle), -math.sin(intersect_angle)
         elif self.ball_x < 0:
             print("Computer scores!")
 
         # Computer side
         if self.ball_x >= self.screen_x -  2 * self.size_x and self.ball_x <= self.screen_x:
-            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
-            normalized_intersect = relative_intersect / (self.paddle_length * self.size_y / 2)
-            if normalized_intersect > -1.1 and normalized_intersect < 1.1:  # Paddle miss
-                self.ball_delta_x, self.ball_delta_y = -math.cos(normalized_intersect), -math.sin(normalized_intersect)
+            intersect_angle = get_intersect_angle()
+            if intersect_angle > -1.1 and intersect_angle < 1.1:  # Paddle miss
+                self.ball_delta_x, self.ball_delta_y = -math.cos(intersect_angle), -math.sin(intersect_angle)
         elif self.ball_x > self.screen_x:
             print("Player scores!")
 
