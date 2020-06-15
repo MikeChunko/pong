@@ -15,8 +15,9 @@ class Pong:
         pyg.display.update()
         pyg.display.set_caption("Pong")
         self.clock = pyg.time.Clock()
+        self.sentinel = True
 
-        # _1 is for the player, _2 is for the computer
+        # _1 is for the player 1, _2 is for player 2
         self.score_1 = self.score_2 = 0
         self.paddle_1 = self.paddle_2 = screen_y / 2 - (2 * self.size_y)
         self.delta_1 = self.delta_2 = 0
@@ -44,57 +45,79 @@ class Pong:
             if event.type == pyg.QUIT:
                 pyg.quit()
                 quit()
-            elif event.type == pyg.KEYUP:  # Move release
-                if (event.key == pyg.K_UP or event.key == pyg.K_w) and self.delta_1 == -1:
+
+            # Player 1
+            if event.type == pyg.KEYUP:  # Move release
+                if event.key == pyg.K_w and self.delta_1 == -1:
                     self.delta_1 = 0
-                elif (event.key == pyg.K_DOWN or event.key == pyg.K_s) and self.delta_1 == 1:
+                elif event.key == pyg.K_s and self.delta_1 == 1:
                     self.delta_1 = 0
             elif event.type == pyg.KEYDOWN:  # Move begin
-                if event.key == pyg.K_UP or event.key == pyg.K_w:
+                if event.key == pyg.K_w:
                     self.delta_1 = -1
-                elif event.key == pyg.K_DOWN or event.key == pyg.K_s:
+                elif event.key == pyg.K_s:
                     self.delta_1 = 1
+
+            # Player 2
+            if event.type == pyg.KEYUP:  # Move release
+                if event.key == pyg.K_UP and self.delta_2 == -1:
+                    self.delta_2 = 0
+                elif event.key == pyg.K_DOWN and self.delta_2 == 1:
+                    self.delta_2 = 0
+            elif event.type == pyg.KEYDOWN:  # Move begin
+                if event.key == pyg.K_UP:
+                    self.delta_2 = -1
+                elif event.key == pyg.K_DOWN:
+                    self.delta_2 = 1
+
+            if event.type == pyg.KEYDOWN and event.key == pyg.K_r:  # Restart
+                self.sentinel = False
 
     def move_paddles(self):
         """ Move both paddles.
             Do bounds checking to ensure they do not move outside the screen. """
-        # Player
+        # Player 1
         new_paddle_1 = self.paddle_1 + self.delta_1
         if (new_paddle_1 > self.size_y
             and new_paddle_1 + (self.paddle_length * self.size_y) < self.screen_y - self.size_y):
             self.paddle_1 += self.delta_1
 
-        # Computer
+        # Player 2
         new_paddle_2 = self.paddle_2 + self.delta_2
         if (new_paddle_2 > self.size_y
             and new_paddle_2 + (self.paddle_length * self.size_y) < self.screen_y - self.size_y):
             self.paddle_2 += self.delta_2
 
     def move_ball(self):
-        def get_intersect_angle():
+        def get_intersect_angle(paddle_num):
             """ Calculate the normalized angle to bounce the ball off of a paddle. """
-            relative_intersect = (self.paddle_1 + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
+            if paddle_num == 1:
+                paddle = self.paddle_1
+            else:
+                paddle = self.paddle_2
+
+            relative_intersect = (paddle + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
             return relative_intersect / (self.paddle_length * self.size_y / 2)  # Normalize
 
         # Check paddle intersect
         self.ball_x += self.ball_delta_x
         self.ball_y += self.ball_delta_y
 
-        # Player side
+        # Player 1 side
         if self.ball_x <= self.size_x and self.ball_x >= 0:
-            intersect_angle = get_intersect_angle()
+            intersect_angle = get_intersect_angle(1)
             if intersect_angle > -1.1 and intersect_angle < 1.1:  # Paddle miss
                 self.ball_delta_x, self.ball_delta_y = math.cos(intersect_angle), -math.sin(intersect_angle)
         elif self.ball_x < 0:
-            print("Computer scores!")
+            print("Player 2 scores!")
 
-        # Computer side
+        # Player 2 side
         if self.ball_x >= self.screen_x -  2 * self.size_x and self.ball_x <= self.screen_x:
-            intersect_angle = get_intersect_angle()
+            intersect_angle = get_intersect_angle(2)
             if intersect_angle > -1.1 and intersect_angle < 1.1:  # Paddle miss
                 self.ball_delta_x, self.ball_delta_y = -math.cos(intersect_angle), -math.sin(intersect_angle)
         elif self.ball_x > self.screen_x:
-            print("Player scores!")
+            print("Player 1 scores!")
 
         # Borders
         if self.ball_y <= self.size_y or self.ball_y >= self.screen_y - 2 * self.size_y:
@@ -111,9 +134,8 @@ class Pong:
 
 
 if __name__ == "__main__":
-    tick = 100
     while True:
         game = Pong()
-        while True:
-            game.step(tick=tick)
+        while game.sentinel:
+            game.step()
 
