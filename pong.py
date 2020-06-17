@@ -23,7 +23,8 @@ class Pong:
         self.delta_1 = self.delta_2 = 0
         self.paddle_length = 5
         self.ball_x, self.ball_y = screen_x / 2, screen_y / 2
-        self.ball_delta_x, self.ball_delta_y = -1, 0
+        self.ball_delta_x, self.ball_delta_y = -.5, 0
+        self.delta_factor = 1.8
 
     def display(self):
         """ Display the game. """
@@ -48,27 +49,27 @@ class Pong:
 
             # Player 1
             if event.type == pyg.KEYUP:  # Move release
-                if event.key == pyg.K_w and self.delta_1 == -1:
+                if event.key == pyg.K_w and self.delta_1 < 0:
                     self.delta_1 = 0
-                elif event.key == pyg.K_s and self.delta_1 == 1:
+                elif event.key == pyg.K_s and self.delta_1 > 0:
                     self.delta_1 = 0
             elif event.type == pyg.KEYDOWN:  # Move begin
                 if event.key == pyg.K_w:
-                    self.delta_1 = -1
+                    self.delta_1 = -.5
                 elif event.key == pyg.K_s:
-                    self.delta_1 = 1
+                    self.delta_1 = .5
 
             # Player 2
             if event.type == pyg.KEYUP:  # Move release
-                if event.key == pyg.K_UP and self.delta_2 == -1:
+                if event.key == pyg.K_UP and self.delta_2 < 0:
                     self.delta_2 = 0
-                elif event.key == pyg.K_DOWN and self.delta_2 == 1:
+                elif event.key == pyg.K_DOWN and self.delta_2 > 0:
                     self.delta_2 = 0
             elif event.type == pyg.KEYDOWN:  # Move begin
                 if event.key == pyg.K_UP:
-                    self.delta_2 = -1
+                    self.delta_2 = -.5
                 elif event.key == pyg.K_DOWN:
-                    self.delta_2 = 1
+                    self.delta_2 = .5
 
             if event.type == pyg.KEYDOWN and event.key == pyg.K_r:  # Restart
                 self.sentinel = False
@@ -99,23 +100,30 @@ class Pong:
             relative_intersect = (paddle + (self.paddle_length * self.size_y) / 2) - self.ball_y - (self.size_y / 2)
             return relative_intersect / (self.paddle_length * self.size_y / 2)  # Normalize
 
+        def increase_delta_factor():
+            self.delta_factor -= self.delta_factor / 12
+
         # Check paddle intersect
         self.ball_x += self.ball_delta_x
         self.ball_y += self.ball_delta_y
 
         # Player 1 side
         if self.ball_x <= self.size_x and self.ball_x >= 0:
+            increase_delta_factor()
             intersect_angle = get_intersect_angle(1)
             if intersect_angle > -1.1 and intersect_angle < 1.1:  # Paddle miss
-                self.ball_delta_x, self.ball_delta_y = math.cos(intersect_angle), -math.sin(intersect_angle)
+                self.ball_delta_x, self.ball_delta_y = math.cos(intersect_angle) / self.delta_factor, \
+                                                      -math.sin(intersect_angle) / self.delta_factor
         elif self.ball_x < 0:
             print("Player 2 scores!")
 
         # Player 2 side
         if self.ball_x >= self.screen_x -  2 * self.size_x and self.ball_x <= self.screen_x:
+            increase_delta_factor()
             intersect_angle = get_intersect_angle(2)
             if intersect_angle > -1.1 and intersect_angle < 1.1:  # Paddle miss
-                self.ball_delta_x, self.ball_delta_y = -math.cos(intersect_angle), -math.sin(intersect_angle)
+                self.ball_delta_x, self.ball_delta_y = -math.cos(intersect_angle) / self.delta_factor, \
+                                                       -math.sin(intersect_angle) / self.delta_factor
         elif self.ball_x > self.screen_x:
             print("Player 1 scores!")
 
@@ -123,7 +131,7 @@ class Pong:
         if self.ball_y <= self.size_y or self.ball_y >= self.screen_y - 2 * self.size_y:
             self.ball_delta_y = -self.ball_delta_y
 
-    def step(self, tick=100):
+    def step(self, tick=200):
         """ Process one step of the game. """
         self.process_input()
         self.move_paddles()
@@ -138,4 +146,3 @@ if __name__ == "__main__":
         game = Pong()
         while game.sentinel:
             game.step()
-
