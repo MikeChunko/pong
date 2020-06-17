@@ -16,6 +16,7 @@ class Pong:
         pyg.display.set_caption("Pong")
         self.clock = pyg.time.Clock()
         self.sentinel = True
+        self.font = pyg.font.SysFont("hack", 30)
 
         # _1 is for the player 1, _2 is for player 2
         self.score_1 = self.score_2 = 0
@@ -25,6 +26,7 @@ class Pong:
         self.ball_x, self.ball_y = screen_x / 2, screen_y / 2
         self.ball_delta_x, self.ball_delta_y = -.5, 0
         self.delta_factor = 1.8
+        self.score_timer = 300
 
     def display(self):
         """ Display the game. """
@@ -39,6 +41,11 @@ class Pong:
         for i in range(0, self.screen_x, self.size_x):  # Border
             pyg.draw.rect(self.screen, self.white, [i, 0, self.size_x, self.size_y])
             pyg.draw.rect(self.screen, self.white, [i, self.screen_y - self.size_y, self.size_x, self.size_y])
+
+        if self.score_timer > 0:
+            textsurface = self.font.render("{} - {}".format(self.score_1, self.score_2), True, (255, 255, 255))
+            self.screen.blit(textsurface, textsurface.get_rect(center=(self.screen_x // 2, self.size_y * 4)))
+            self.score_timer -= 1
 
     def process_input(self):
         """ Fetch and handle user input. """
@@ -73,6 +80,7 @@ class Pong:
 
             if event.type == pyg.KEYDOWN and event.key == pyg.K_r:  # Restart
                 self.sentinel = False
+                self.score_1 = self.score_2 = 0
 
     def move_paddles(self):
         """ Move both paddles.
@@ -115,7 +123,6 @@ class Pong:
                 self.ball_delta_x, self.ball_delta_y = math.cos(intersect_angle) / self.delta_factor, \
                                                       -math.sin(intersect_angle) / self.delta_factor
         elif self.ball_x < -self.size_x:
-            print("Player 2 scores!")
             self.score_2 += 1
             self.sentinel = False
             self.clock.tick(3)
@@ -128,7 +135,6 @@ class Pong:
                 self.ball_delta_x, self.ball_delta_y = -math.cos(intersect_angle) / self.delta_factor, \
                                                        -math.sin(intersect_angle) / self.delta_factor
         elif self.ball_x > self.screen_x + self.size_x:
-            print("Player 1 scores!")
             self.score_1 += 1
             self.sentinel = False
             self.clock.tick(3)
@@ -148,7 +154,10 @@ class Pong:
 
 
 if __name__ == "__main__":
+    score_1 = score_2 = 0
     while True:
         game = Pong()
+        game.score_1, game.score_2 = score_1, score_2
         while game.sentinel:
             game.step()
+            score_1, score_2 = game.score_1, game.score_2
