@@ -114,8 +114,11 @@ class Pong:
             if intersect_angle > -1.1 and intersect_angle < 1.1:  # Paddle miss
                 self.ball_delta_x, self.ball_delta_y = math.cos(intersect_angle) / self.delta_factor, \
                                                       -math.sin(intersect_angle) / self.delta_factor
-        elif self.ball_x < 0:
+        elif self.ball_x < -self.size_x:
             print("Player 2 scores!")
+            self.score_2 += 1
+            self.sentinel = False
+            self.clock.tick(3)
 
         # Player 2 side
         if self.ball_x >= self.screen_x -  2 * self.size_x and self.ball_x <= self.screen_x:
@@ -124,8 +127,11 @@ class Pong:
             if intersect_angle > -1.1 and intersect_angle < 1.1:  # Paddle miss
                 self.ball_delta_x, self.ball_delta_y = -math.cos(intersect_angle) / self.delta_factor, \
                                                        -math.sin(intersect_angle) / self.delta_factor
-        elif self.ball_x > self.screen_x:
+        elif self.ball_x > self.screen_x + self.size_x:
             print("Player 1 scores!")
+            self.score_1 += 1
+            self.sentinel = False
+            self.clock.tick(3)
 
         # Borders
         if self.ball_y <= self.size_y or self.ball_y >= self.screen_y - 2 * self.size_y:
