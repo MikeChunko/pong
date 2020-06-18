@@ -26,6 +26,7 @@ class Pong:
         self.ball_x, self.ball_y = screen_x / 2, screen_y / 2
         self.ball_delta_x, self.ball_delta_y = -.5, 0
         self.delta_factor = 1.8
+        self.min_delta_factor = .8
         self.score_timer = 300
 
     def display(self):
@@ -98,6 +99,7 @@ class Pong:
             self.paddle_2 += self.delta_2
 
     def move_ball(self):
+        """ Move the ball and do the relevant calculations for if it hit a wall, paddle, or goal. """
         def get_intersect_angle(paddle_num):
             """ Calculate the normalized angle to bounce the ball off of a paddle. """
             if paddle_num == 1:
@@ -109,7 +111,10 @@ class Pong:
             return relative_intersect / (self.paddle_length * self.size_y / 2)  # Normalize
 
         def increase_delta_factor():
-            self.delta_factor -= self.delta_factor / 12
+            """ Speed up the ball. """
+            if self.delta_factor > self.min_delta_factor:
+                self.delta_factor -= self.delta_factor / 12
+            print(self.delta_factor)
 
         # Check paddle intersect
         self.ball_x += self.ball_delta_x
