@@ -114,7 +114,6 @@ class Pong:
             """ Speed up the ball. """
             if self.delta_factor > self.min_delta_factor:
                 self.delta_factor -= self.delta_factor / 12
-            print(self.delta_factor)
 
         # Check paddle intersect
         self.ball_x += self.ball_delta_x
